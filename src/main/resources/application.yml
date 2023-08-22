@@ -1,1 +1,6 @@
-
+server:
+  port: 8080
+elasticsearch:
+  host: http://localhost:9200
+  username: admin
+  password: password
