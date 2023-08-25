@@ -1,4 +1,4 @@
-package com.github.dudekmat.donationregistry.config.elasticsearch
+package com.github.dudekmat.donationregistry.infrastructure
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient
 import co.elastic.clients.json.jackson.JacksonJsonpMapper
