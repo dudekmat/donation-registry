@@ -3,6 +3,7 @@ package com.github.dudekmat.donationregistry.infrastructure
 import co.elastic.clients.elasticsearch.ElasticsearchClient
 import co.elastic.clients.json.jackson.JacksonJsonpMapper
 import co.elastic.clients.transport.rest_client.RestClientTransport
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.apache.http.HttpHost
 import org.apache.http.auth.AuthScope
 import org.apache.http.auth.UsernamePasswordCredentials
@@ -15,23 +16,26 @@ import org.springframework.context.annotation.Configuration
 
 @Configuration
 @EnableConfigurationProperties(ElasticsearchProperties::class)
-class ElasticsearchConfig(private val elasticsearchProperties: ElasticsearchProperties) {
+class ElasticsearchConfig(
+    private val elasticsearchProperties: ElasticsearchProperties,
+    private val objectMapper: ObjectMapper
+) {
 
     @Bean
     fun elasticsearchClient(): ElasticsearchClient {
         val credentialsProvider = BasicCredentialsProvider()
 
         credentialsProvider.setCredentials(AuthScope.ANY,
-                UsernamePasswordCredentials(elasticsearchProperties.username,
-                        elasticsearchProperties.password))
+            UsernamePasswordCredentials(elasticsearchProperties.username,
+                elasticsearchProperties.password))
 
         val restClient = RestClient.builder(HttpHost.create(elasticsearchProperties.host))
-                .setHttpClientConfigCallback { httpClientBuilder ->
-                    httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider)
-                }
-                .build()
+            .setHttpClientConfigCallback { httpClientBuilder ->
+                httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider)
+            }
+            .build()
 
-        val transport = RestClientTransport(restClient, JacksonJsonpMapper())
+        val transport = RestClientTransport(restClient, JacksonJsonpMapper(objectMapper))
 
         return ElasticsearchClient(transport)
     }

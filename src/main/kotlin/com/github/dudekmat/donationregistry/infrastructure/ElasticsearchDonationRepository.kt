@@ -33,6 +33,7 @@ class ElasticsearchDonationRepository(
             }
         } catch (ex: Exception) {
             log.error { "Error occurred indexing document: $donation, message: ${ex.message}" }
+            ex.printStackTrace()
         }
     }
 
