@@ -2,12 +2,17 @@ package com.github.dudekmat.donationregistry.api
 
 import com.github.dudekmat.donationregistry.application.DonationData
 import com.github.dudekmat.donationregistry.application.DonationDataItem
+import com.github.dudekmat.donationregistry.application.DonationDetails
+import com.github.dudekmat.donationregistry.application.DonationQueryRepository
 import com.github.dudekmat.donationregistry.application.DonationService
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Positive
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
+import org.springframework.data.web.PageableDefault
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -22,7 +27,9 @@ import java.time.Instant
 @RestController
 @Validated
 @RequestMapping("/api/donations")
-class DonationController(private val donationService: DonationService) {
+class DonationController(
+    private val donationService: DonationService,
+    private val donationQueryRepository: DonationQueryRepository) {
 
     @PostMapping
     fun createDonation(@RequestBody @Valid donationPayload: DonationPayload) {
@@ -37,23 +44,12 @@ class DonationController(private val donationService: DonationService) {
 
     @GetMapping("/{id}")
     fun getDonationById(@PathVariable @NotBlank id: String): DonationDetails {
-        val donation = donationService.findById(id)
+        return donationQueryRepository.findById(id);
+    }
 
-        return with(donation) {
-            DonationDetails(
-                donationDate = donationDate.dateTime,
-                donor = donor.name,
-                items = items.map {
-                    DonationItemDetails(
-                        type = it.type,
-                        details = it.details,
-                        unit = it.unit,
-                        quantity = it.quantity,
-                        price = it.price
-                    )
-                }
-            )
-        }
+    @GetMapping
+    fun getDonations(@PageableDefault(size = 10, page = 0) pageable: Pageable): Page<DonationDetails> {
+        return donationQueryRepository.findAll(pageable)
     }
 
 }
@@ -88,18 +84,4 @@ data class DonationItemPayload(
     @field:NotBlank val unit: String? = null,
     @field:NotNull @field:Positive val quantity: BigDecimal? = null,
     @field:NotNull @field:Positive val price: BigDecimal? = null
-)
-
-data class DonationDetails(
-    val donationDate: Instant,
-    val donor: String,
-    val items: List<DonationItemDetails> = listOf()
-)
-
-data class DonationItemDetails(
-    val type: String,
-    val details: String,
-    val unit: String,
-    val quantity: BigDecimal,
-    val price: BigDecimal
 )

@@ -12,8 +12,6 @@ import com.github.dudekmat.donationregistry.domain.ModifiedDate
 import com.github.dudekmat.donationregistry.infrastructure.ElasticsearchConfig.Companion.DONATION_INDEX
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.stereotype.Repository
-import java.math.BigDecimal
-import java.time.Instant
 
 private val log = KotlinLogging.logger {}
 
@@ -54,41 +52,24 @@ class ElasticsearchDonationRepository(
     }
 }
 
-data class ElasticDonationData(
-    val id: String,
-    val createdDate: Instant,
-    val modifiedDate: Instant,
-    val donationDate: Instant,
-    val donor: String,
-    val items: List<ElasticDonationItemData> = listOf()
-) {
+private fun ElasticDonationData.mapToDomain() =
+    Donation(
+        donationId = DonationId(id),
+        createdDate = CreatedDate(createdDate),
+        modifiedDate = ModifiedDate(modifiedDate),
+        donationDate = DonationDate(donationDate),
+        donor = Donor(donor),
+        items = items.map {
+            DonationItem(
+                type = it.type,
+                details = it.details,
+                unit = it.unit,
+                quantity = it.quantity,
+                price = it.price
+            )
+        }
+    )
 
-    fun mapToDomain() =
-        Donation(
-            donationId = DonationId(id),
-            createdDate = CreatedDate(createdDate),
-            modifiedDate = ModifiedDate(modifiedDate),
-            donationDate = DonationDate(donationDate),
-            donor = Donor(donor),
-            items = items.map {
-                DonationItem(
-                    type = it.type,
-                    details = it.details,
-                    unit = it.unit,
-                    quantity = it.quantity,
-                    price = it.price
-                )
-            }
-        )
-}
-
-data class ElasticDonationItemData(
-    val type: String,
-    val details: String,
-    val unit: String,
-    val quantity: BigDecimal,
-    val price: BigDecimal
-)
 
 private fun Donation.mapFromDomain() =
     ElasticDonationData(

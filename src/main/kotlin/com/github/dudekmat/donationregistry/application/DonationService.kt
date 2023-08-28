@@ -19,11 +19,6 @@ class DonationService(
     private val donationRepository: DonationRepository
 ) {
 
-    fun findById(id: String): Donation {
-        return donationRepository.findById(DonationId(id))
-            ?: throw NotFoundException("Donation not found with id $id")
-    }
-
     fun create(newDonationData: DonationData) {
         val donation = Donation(
             donationId = DonationId(UUID.randomUUID().toString()),
@@ -47,7 +42,7 @@ class DonationService(
 
     fun update(id: String, donationData: DonationData) {
         val foundDonation = donationRepository.findById(DonationId(id))
-            ?: throw NotFoundException("Donation not found with id $id")
+            ?: throw NotFoundException("Donation not found with id=$id")
 
         val donation = Donation(
             donationId = DonationId(id),
